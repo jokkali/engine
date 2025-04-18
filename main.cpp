@@ -97,7 +97,7 @@ int main() {
 
 	NewPlayer.SetStart();
 
-	InitWindow(1920, 1080, "ZmejkaGAME");
+	InitWindow(1920, 1080, "test");
 
 	SetTargetFPS(60);
 	bool reg = 0;
