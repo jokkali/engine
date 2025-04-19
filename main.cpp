@@ -16,13 +16,15 @@ public:
 };
 
 class PhysicObject {
-protected:
-	int x;
-	int y;
-	uint8_t Speed;
-	uint8_t CurrentAccelerate;
-	const float FallingAccelerate = 9.8;
-public:
+	public:
+	float x = 100.f;
+	float y = 100.f;
+	float Height = 100.f;
+	float Speed = 1;
+	float CurrentAccelerate = 1;
+	const int FallingAccelerate = 10;
+
+	//getter
 	int GetX() {
 		return this->x;
 	}
@@ -35,48 +37,76 @@ public:
 	uint8_t GetCurrentAccelerate() {
 		return this->CurrentAccelerate;
 	}
+	//setter
+	void SetX(int NewX) {
+		this->x = NewX;
+	}
+	void SetY(int NewY) {
+		this->y = NewY;
+	}
+
+
+	//Self Drawing?
+
 };
 
 class Player : public PhysicObject
 {
 
 public:
-	Rectangle BodyCollider = { 100,100,10,10};
+	/*
+	Vector2 UpperLeft;
+	Vector2 UpperRight;
+	Vector2 LowerLeft;
+	Vector2 LowerRight;
+	*/
 	void SetStart() {
 		this->y = 100;
 		this->x = 100;
+		this->Height = 100;
 	}
+	int JumpForce = 60;
+	Rectangle BodyCollider = { x,y,40,Height };
 	void SetSpeed(int AmountToSet) {
 		this->Speed = AmountToSet;
 	}
-	bool CheckGroundBelow(std::vector<Rectangle> Platforms) {
-		if (Platforms[1].y > this->y - this->CurrentAccelerate || Platforms[1].y-Platforms[1].width < this->y - this->CurrentAccelerate) {
-			this->CurrentAccelerate = 0;	
+	bool CheckGroundBelow(Rectangle Ground) {
+		if (Ground.y < (this->y + this->Height) || (this->y + this->Height) > Ground.y+70) {
+			this->CurrentAccelerate = 0;
+			
+			
 			return 1;
 		}
 		else
 		{
-			CurrentAccelerate = CurrentAccelerate + (FallingAccelerate);
+			
+			//CurrentAccelerate = CurrentAccelerate + (FallingAccelerate);
 			return 0;
 		}
 	}
-	void Accelerate() {
-		if (this->CheckGroundBelow(GameColliderPtr) == 1) {
-			this->CurrentAccelerate = 0;
-		}
-		else
-		{
-			this->y = y - CurrentAccelerate;
-			this->CurrentAccelerate += FallingAccelerate;
-			
+	void move(Rectangle Ground) {
+		y+=FallingAccelerate*GetFrameTime()*100;
+		if (Ground.y < (this->y - this->Height)) {
+			this->y -= this->y - Ground.y;
+			std::cout << 3213819;
 		}
 	}
+
+	void UpdateColliderState() {
+		this->BodyCollider.x = x;
+		this->BodyCollider.y = y;
+		
+	}
+
+	Player(std::vector<Rectangle>GameColliderPtr = GameColliderPtr) {
+		GameColliderPtr.push_back(this->BodyCollider);
+	};
 };
 
 class Platform : public NonPhysicOblect
 {
 public:
-	Rectangle Collider = { 100,1000,800,70 };
+	Rectangle Collider = { 0,700,1000,200 };
 	void SetX() {
 		this->x;
 	}
@@ -84,6 +114,15 @@ public:
 		return this->y;
 	}
 };
+
+template <typename T1>
+void DrawArrays(std::vector<T1> Arr) {
+	T1 CurrentItem = 0;
+
+	Arr.size;
+}
+
+
 
 int main() {
 	
@@ -93,25 +132,49 @@ int main() {
 
 	GameColliderPtr.push_back(NewPlayer.BodyCollider);
 	GameColliderPtr.push_back(Ground.Collider);
-	//std::cout<< (int)NewPlayer.GetSpeed();
+	
 
 	NewPlayer.SetStart();
-
+	
 	InitWindow(1920, 1080, "test");
 
 	SetTargetFPS(60);
-	bool reg = 0;
-	bool glob = 0;
+
 	while (!WindowShouldClose()) {
 		BeginDrawing();
 		ClearBackground({128,60,33,255});
 		
-		DrawRectangle(NewPlayer.BodyCollider.x, NewPlayer.BodyCollider.y, NewPlayer.BodyCollider.width, NewPlayer.BodyCollider.height, RED);
+		NewPlayer.UpdateColliderState();
+
 		DrawRectangle(Ground.Collider.x, Ground.Collider.y, Ground.Collider.width, Ground.Collider.height, GREEN);
 		
-		NewPlayer.Accelerate();
-		//NewPlayer.CheckGround(GameColliderPtr);
+		DrawRectangle(NewPlayer.BodyCollider.x, NewPlayer.BodyCollider.y, NewPlayer.BodyCollider.width, NewPlayer.BodyCollider.height, RED);
 
+		if (NewPlayer.CheckGroundBelow(Ground.Collider) == 0) {
+			NewPlayer.move(Ground.Collider);
+			
+		}
+		int f = GetKeyPressed();
+		// a is 65
+		//std::cout << f;
+		
+		if (IsKeyDown(262) == 1) {
+			NewPlayer.SetX(NewPlayer.x + 10);
+		}
+		else
+		{
+			if (IsKeyDown(263) == 1) {
+				NewPlayer.SetX(NewPlayer.x - 10);
+			}
+		}
+
+		switch (f) {
+		case 32:
+			NewPlayer.SetY(NewPlayer.y - NewPlayer.JumpForce);
+			break;
+		}
+		//NewPlayer.CheckGround(GameColliderPtr);
+		
 		EndDrawing();
 	}
 
